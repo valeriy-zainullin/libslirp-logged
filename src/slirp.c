@@ -1174,19 +1174,31 @@ static void arp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
 
 void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
 {
+    printf("QEMU mod: libslirp: slirp_input called.\n");
+
     struct mbuf *m;
     int proto;
 
-    if (pkt_len < ETH_HLEN)
+    printf("QEMU mod: libslirp: packet is \"");
+    for (int i = 0; i < pkt_len; ++i) {
+        printf("\\x%02x", (unsigned) pkt[i]);
+    }
+    printf("\".\n");
+
+    if (pkt_len < ETH_HLEN) {
+        printf("QEMU mod: libslirp: slirp_input #1 taken.\n");
         return;
+    }
 
     proto = (((uint16_t)pkt[12]) << 8) + pkt[13];
     switch (proto) {
     case ETH_P_ARP:
+        printf("QEMU mod: libslirp: slirp_input #2 taken.\n");
         arp_input(slirp, pkt, pkt_len);
         break;
     case ETH_P_IP:
     case ETH_P_IPV6:
+        printf("QEMU mod: libslirp: slirp_input #3 taken.\n");
         m = m_get(slirp);
         if (!m)
             return;
@@ -1209,12 +1221,16 @@ void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
         break;
 
     case ETH_P_NCSI:
+        printf("QEMU mod: libslirp: slirp_input #4 taken.\n");
         ncsi_input(slirp, pkt, pkt_len);
         break;
 
     default:
+        printf("QEMU mod: libslirp: slirp_input #5 taken.\n");
         break;
     }
+
+    printf("QEMU mod: libslirp: slirp_input #6 taken.\n");
 }
 
 /* Prepare the IPv4 packet to be sent to the ethernet device. Returns 1 if no
