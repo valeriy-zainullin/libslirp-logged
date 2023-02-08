@@ -69,6 +69,7 @@ void ip_cleanup(Slirp *slirp)
  */
 void ip_input(struct mbuf *m)
 {
+    printf("QEMU mod: libslirp: ip_input called.\n");    
     Slirp *slirp = m->slirp;
     M_DUP_DEBUG(slirp, m, 0, TCPIPHDR_DELTA);
 
@@ -76,6 +77,7 @@ void ip_input(struct mbuf *m)
     int hlen;
 
     if (!slirp->in_enabled) {
+        printf("QEMU mod: libslirp: ip_input #1 taken.\n");    
         goto bad;
     }
 
@@ -84,17 +86,20 @@ void ip_input(struct mbuf *m)
     DEBUG_ARG("m_len = %d", m->m_len);
 
     if (m->m_len < sizeof(struct ip)) {
+        printf("QEMU mod: libslirp: ip_input #2 taken.\n");
         goto bad;
     }
 
     ip = mtod(m, struct ip *);
 
     if (ip->ip_v != IPVERSION) {
+        printf("QEMU mod: libslirp: ip_input #3 taken.\n");
         goto bad;
     }
 
     hlen = ip->ip_hl << 2;
     if (hlen < sizeof(struct ip) || hlen > m->m_len) { /* min header length */
+        printf("QEMU mod: libslirp: ip_input #4 taken.\n");
         goto bad; /* or packet too short */
     }
 
@@ -103,6 +108,7 @@ void ip_input(struct mbuf *m)
      * if (ip->ip_sum) {
      */
     if (cksum(m, hlen)) {
+        printf("QEMU mod: libslirp: ip_input #5 taken.\n");
         goto bad;
     }
 
@@ -111,6 +117,7 @@ void ip_input(struct mbuf *m)
      */
     NTOHS(ip->ip_len);
     if (ip->ip_len < hlen) {
+        printf("QEMU mod: libslirp: ip_input #6 taken.\n");
         goto bad;
     }
     NTOHS(ip->ip_id);
@@ -123,15 +130,19 @@ void ip_input(struct mbuf *m)
      * Drop packet if shorter than we expect.
      */
     if (m->m_len < ip->ip_len) {
+        printf("QEMU mod: libslirp: ip_input #7 taken.\n");
         goto bad;
     }
 
     /* Should drop packet if mbuf too long? hmmm... */
-    if (m->m_len > ip->ip_len)
+    if (m->m_len > ip->ip_len) {
+        printf("QEMU mod: libslirp: ip_input #8 taken.\n");
         m_adj(m, ip->ip_len - m->m_len);
+    }
 
     /* check ip_ttl for a correct ICMP reply */
     if (ip->ip_ttl == 0) {
+        printf("QEMU mod: libslirp: ip_input #9 taken.\n");
         icmp_send_error(m, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS, 0, "ttl");
         goto bad;
     }
@@ -146,6 +157,7 @@ void ip_input(struct mbuf *m)
      * XXX This should fail, don't fragment yet
      */
     if (ip->ip_off & ~IP_DF) {
+        printf("QEMU mod: libslirp: ip_input #10 taken.\n");
         register struct ipq *fp;
         struct qlink *l;
         /*
@@ -163,6 +175,7 @@ void ip_input(struct mbuf *m)
         }
         fp = NULL;
     found:
+        printf("QEMU mod: libslirp: ip_input #11 taken.\n");
 
         /*
          * Adjust ip_len to not reflect header,
@@ -193,6 +206,7 @@ void ip_input(struct mbuf *m)
     } else
         ip->ip_len -= hlen;
 
+    printf("QEMU mod: libslirp: ip_input #12 taken.\n");
     /*
      * Switch out to protocol's input routine.
      */
@@ -207,10 +221,13 @@ void ip_input(struct mbuf *m)
         icmp_input(m, hlen);
         break;
     default:
+        printf("QEMU mod: libslirp: ip_input #13 taken.\n");
         m_free(m);
     }
+    printf("QEMU mod: libslirp: ip_input #14 taken.\n");
     return;
 bad:
+    printf("QEMU mod: libslirp: ip_input #15 taken.\n");
     m_free(m);
 }
 

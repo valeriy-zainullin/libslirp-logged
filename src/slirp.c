@@ -554,6 +554,7 @@ static void slirp_init_once(void)
             { "verbose_call", DBG_VERBOSE_CALL },
         };
         slirp_debug = g_parse_debug_string(debug, keys, G_N_ELEMENTS(keys));
+        slirp_debug |= DBG_CALL;
     }
 }
 
@@ -1191,6 +1192,7 @@ void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
     }
 
     proto = (((uint16_t)pkt[12]) << 8) + pkt[13];
+    printf("QEMU mod: libslirp: proto = 0x%x.\n", proto);
     switch (proto) {
     case ETH_P_ARP:
         printf("QEMU mod: libslirp: slirp_input #2 taken.\n");
@@ -1200,11 +1202,14 @@ void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
     case ETH_P_IPV6:
         printf("QEMU mod: libslirp: slirp_input #3 taken.\n");
         m = m_get(slirp);
-        if (!m)
+        if (!m) {
+            printf("QEMU mod: libslirp: slirp_input #3.1 taken.\n");
             return;
+        }
         /* Note: we add 2 to align the IP header on 8 bytes despite the ethernet
          * header, and add the margin for the tcpiphdr overhead  */
         if (M_FREEROOM(m) < pkt_len + TCPIPHDR_DELTA + 2) {
+            printf("QEMU mod: libslirp: slirp_input #3.2 taken.\n");
             m_inc(m, pkt_len + TCPIPHDR_DELTA + 2);
         }
         m->m_len = pkt_len + TCPIPHDR_DELTA + 2;
@@ -1214,8 +1219,10 @@ void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
         m->m_len -= TCPIPHDR_DELTA + 2 + ETH_HLEN;
 
         if (proto == ETH_P_IP) {
+            printf("QEMU mod: libslirp: slirp_input #3.3 taken.\n");
             ip_input(m);
         } else if (proto == ETH_P_IPV6) {
+            printf("QEMU mod: libslirp: slirp_input #3.4 taken.\n");
             ip6_input(m);
         }
         break;
