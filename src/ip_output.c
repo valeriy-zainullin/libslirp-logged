@@ -50,6 +50,8 @@
  */
 int ip_output(struct socket *so, struct mbuf *m0)
 {
+    printf("QEMU mod: libslirp: ip_output called.\n");
+
     Slirp *slirp = m0->slirp;
     M_DUP_DEBUG(slirp, m0, 0, 0);
 
@@ -71,10 +73,14 @@ int ip_output(struct socket *so, struct mbuf *m0)
     ip->ip_id = htons(slirp->ip_id++);
     ip->ip_hl = hlen >> 2;
 
+    printf("QEMU mod: libslirp: ip_output #1 taken.\n");
+
     /*
      * If small enough for interface, can just send directly.
      */
     if ((uint16_t)ip->ip_len <= slirp->if_mtu) {
+        printf("QEMU mod: libslirp: ip_output #2 taken.\n");
+        
         ip->ip_len = htons((uint16_t)ip->ip_len);
         ip->ip_off = htons((uint16_t)ip->ip_off);
         ip->ip_sum = 0;
@@ -84,17 +90,22 @@ int ip_output(struct socket *so, struct mbuf *m0)
         goto done;
     }
 
+    printf("QEMU mod: libslirp: ip_output #3 taken.\n");
+
     /*
      * Too large for interface; fragment if possible.
      * Must be able to put at least 8 bytes per fragment.
      */
     if (ip->ip_off & IP_DF) {
+        printf("QEMU mod: libslirp: ip_output #4 taken.\n");
         error = -1;
         goto bad;
     }
 
+    printf("QEMU mod: libslirp: ip_output #5 taken.\n");
     len = (slirp->if_mtu - hlen) & ~7; /* ip databytes per packet */
     if (len < 8) {
+        printf("QEMU mod: libslirp: ip_output #6 taken.\n");
         error = -1;
         goto bad;
     }
@@ -166,6 +177,7 @@ done:
     return (error);
 
 bad:
+    printf("QEMU mod: libslirp: ip_output #7 taken.\n");
     m_free(m0);
     goto done;
 }

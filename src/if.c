@@ -40,6 +40,8 @@ void if_init(Slirp *slirp)
  */
 void if_output(struct socket *so, struct mbuf *ifm)
 {
+    printf("QEMU mod: libslirp: if_output called.\n");
+
     Slirp *slirp = ifm->slirp;
     M_DUP_DEBUG(slirp, ifm, 0, 0);
 
@@ -142,6 +144,8 @@ diddit:
  */
 void if_start(Slirp *slirp)
 {
+    // printf("QEMU mod: libslirp: if_start called.\n"); // Too much output.
+
     uint64_t now = slirp->cb->clock_get_ns(slirp->opaque);
     bool from_batchq = false;
     struct mbuf *ifm, *ifm_next, *ifqt;

@@ -554,7 +554,7 @@ static void slirp_init_once(void)
             { "verbose_call", DBG_VERBOSE_CALL },
         };
         slirp_debug = g_parse_debug_string(debug, keys, G_N_ELEMENTS(keys));
-        slirp_debug |= DBG_CALL;
+        slirp_debug |= DBG_VERBOSE_CALL;
     }
 }
 
@@ -1247,6 +1247,9 @@ void slirp_input(Slirp *slirp, const uint8_t *pkt, int pkt_len)
 static int if_encap4(Slirp *slirp, struct mbuf *ifm, struct ethhdr *eh,
                      uint8_t ethaddr[ETH_ALEN])
 {
+    // Too much noise, found the caller with a git grep.
+    // printf("QEMU mod: libslirp: if_encap4 called.\n");
+
     const struct ip *iph = (const struct ip *)ifm->m_data;
 
     if (!arp_table_search(slirp, iph->ip_dst.s_addr, ethaddr)) {
@@ -1328,6 +1331,25 @@ static int if_encap6(Slirp *slirp, struct mbuf *ifm, struct ethhdr *eh,
  */
 int if_encap(Slirp *slirp, struct mbuf *ifm)
 {
+    // Too much noise, already identified the caller (by a git grep).
+    /*
+    printf("QEMU mod: libslirp: if_encap called.\n");
+
+        #if !defined(RETURN_ADDR_OFFSET_PRINT)
+        #define RETURN_ADDR_OFFSET_PRINT(func) \
+        { \
+            int64_t value = (int64_t) (uint64_t) __builtin_return_address(0) - (int64_t) (uint64_t) func; \
+            if (value < 0) { \
+                printf("QEMU mod: %s, return_address - func_addr = -0x%llx.\n", __func__, (unsigned long long) (-value)); \
+            } else { \
+                printf("QEMU mod: %s, return_address - func_addr = 0x%llx.\n", __func__, (unsigned long long) value); \
+            } \
+        }
+    #endif
+    RETURN_ADDR_OFFSET_PRINT(if_encap);
+    */
+
+
     uint8_t buf[IF_MTU_MAX + 100];
     struct ethhdr *eh = (struct ethhdr *)(buf + 2);
     uint8_t ethaddr[ETH_ALEN];
@@ -1640,6 +1662,21 @@ void slirp_socket_recv(Slirp *slirp, struct in_addr guest_addr, int guest_port,
 
 void slirp_send_packet_all(Slirp *slirp, const void *buf, size_t len)
 {
+    printf("QEMU mod: libslirp: slirp_send_packet_all called.\n");
+
+    #if !defined(RETURN_ADDR_OFFSET_PRINT)
+        #define RETURN_ADDR_OFFSET_PRINT(func) \
+        { \
+            int64_t value = (int64_t) (uint64_t) __builtin_return_address(0) - (int64_t) (uint64_t) func; \
+            if (value < 0) { \
+                printf("QEMU mod: %s, return_address - func_addr = -0x%llx.\n", __func__, (unsigned long long) (-value)); \
+            } else { \
+                printf("QEMU mod: %s, return_address - func_addr = 0x%llx.\n", __func__, (unsigned long long) value); \
+            } \
+        }
+    #endif
+    RETURN_ADDR_OFFSET_PRINT(slirp_send_packet_all);
+
     slirp_ssize_t ret = slirp->cb->send_packet(buf, len, slirp->opaque);
 
     if (ret < 0) {

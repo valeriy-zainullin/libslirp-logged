@@ -67,6 +67,8 @@ int tcp_output(struct tcpcb *tp)
     DEBUG_CALL("tcp_output");
     DEBUG_ARG("tp = %p", tp);
 
+    printf("QEMU mod: libslirp: tcp_output called.\n");
+
     /*
      * Determine length of data that should be transmitted,
      * and flags that will be used.

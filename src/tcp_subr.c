@@ -122,6 +122,8 @@ void tcp_template(struct tcpcb *tp)
 void tcp_respond(struct tcpcb *tp, struct tcpiphdr *ti, struct mbuf *m,
                  tcp_seq ack, tcp_seq seq, int flags, unsigned short af)
 {
+    printf("QEMU mod: libslirp: tcp_respond called.\n");
+
     register int tlen;
     int win = 0;
 

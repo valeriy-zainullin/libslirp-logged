@@ -66,6 +66,8 @@ void udp_cleanup(Slirp *slirp)
  */
 void udp_input(register struct mbuf *m, int iphlen)
 {
+    printf("QEMU mod: libslirp: udp_input called.\n");
+
     Slirp *slirp = m->slirp;
     M_DUP_DEBUG(slirp, m, 0, 0);
 
@@ -250,6 +252,8 @@ bad:
 int udp_output(struct socket *so, struct mbuf *m, struct sockaddr_in *saddr,
                struct sockaddr_in *daddr, int iptos)
 {
+    printf("QEMU mod: libslirp: udp_output called.\n");
+
     Slirp *slirp = m->slirp;
     char addr[INET_ADDRSTRLEN];
 
@@ -263,6 +267,20 @@ int udp_output(struct socket *so, struct mbuf *m, struct sockaddr_in *saddr,
     DEBUG_ARG("m = %p", m);
     DEBUG_ARG("saddr = %s", inet_ntop(AF_INET, &saddr->sin_addr, addr, sizeof(addr)));
     DEBUG_ARG("daddr = %s", inet_ntop(AF_INET, &daddr->sin_addr, addr, sizeof(addr)));
+
+    {
+        printf("QEMU mod: udp_output #1 taken, content = \"");
+        char* buffer = (char*) m->m_data;
+        size_t buffer_size = m->m_len;
+        for (size_t i = 0; i < buffer_size; ++i) {
+            if (('a' <= buffer[i] && buffer[i] <= 'z') || ('A' <= buffer[i] && buffer[i] <= 'Z') || ('0' <= buffer[i] && buffer[i] <= '9')) {
+                printf("%c", buffer[i]);
+            } else {
+                printf("\\%02x", (unsigned) (* (uint8_t*) &buffer[i]));                
+            }
+        }
+        printf("\".\n");
+    }
 
     /*
      * Adjust for header
@@ -297,6 +315,20 @@ int udp_output(struct socket *so, struct mbuf *m, struct sockaddr_in *saddr,
 
     ((struct ip *)ui)->ip_ttl = IPDEFTTL;
     ((struct ip *)ui)->ip_tos = iptos;
+
+    {
+        printf("QEMU mod: udp_output #2 taken, content = \"");
+        char* buffer = (char*) m->m_data;
+        size_t buffer_size = m->m_len;
+        for (size_t i = 0; i < buffer_size; ++i) {
+            if (('a' <= buffer[i] && buffer[i] <= 'z') || ('A' <= buffer[i] && buffer[i] <= 'Z') || ('0' <= buffer[i] && buffer[i] <= '9')) {
+                printf("%c", buffer[i]);
+            } else {
+                printf("\\%02x", (unsigned) (* (uint8_t*) &buffer[i]));                
+            }
+        }
+        printf("\".\n");
+    }
 
     error = ip_output(so, m);
 
